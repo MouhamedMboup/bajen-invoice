@@ -70,19 +70,14 @@ export function AppSidebar({ user }: AppSidebarProps) {
     <Sidebar variant="inset">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1">
-          <div className="relative h-8 w-8 flex-shrink-0">
-            <Image
-              src="/logo.png"
-              alt="Bajen"
-              fill
-              className="object-contain"
-              onError={() => {}}
-            />
-          </div>
-          <div className="flex flex-col leading-none">
-            <span className="font-semibold text-sm">Bajen Invoice</span>
-            <span className="text-xs text-muted-foreground">Sheabutter INC.</span>
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Bajen Sheabutter INC."
+            width={130}
+            height={44}
+            className="object-contain"
+            priority
+          />
         </div>
       </SidebarHeader>
 
