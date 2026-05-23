@@ -22,7 +22,8 @@ export const prisma =
       connectionString: getConnectionString(),
       max: 2,
       // Supabase requires SSL; pg adapter doesn't infer it from the URL
-      ssl: process.env.NODE_ENV === "production" ? true : undefined,
+      // Supabase pooler uses a self-signed cert in its chain; disable verification
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
     }),
   });
 globalForPrisma.prisma = prisma;
