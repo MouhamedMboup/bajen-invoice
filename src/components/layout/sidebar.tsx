@@ -92,11 +92,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/invoices/new" className="font-medium text-primary">
-                    <PlusCircle className="text-primary" />
-                    New Invoice
-                  </Link>
+                <SidebarMenuButton
+                  render={<Link href="/invoices/new" className="font-medium text-primary" />}
+                >
+                  <PlusCircle className="text-primary" />
+                  New Invoice
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -112,13 +112,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
               {navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    asChild
+                    render={<Link href={item.url} />}
                     isActive={pathname === item.url || pathname.startsWith(item.url + "/")}
                   >
-                    <Link href={item.url}>
-                      <item.icon />
-                      {item.title}
-                    </Link>
+                    <item.icon />
+                    {item.title}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -134,11 +132,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/settings"}>
-                      <Link href="/settings">
-                        <Settings />
-                        Settings
-                      </Link>
+                    <SidebarMenuButton
+                      render={<Link href="/settings" />}
+                      isActive={pathname === "/settings"}
+                    >
+                      <Settings />
+                      Settings
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -152,23 +151,25 @@ export function AppSidebar({ user }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent"
-                >
-                  <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarFallback className="rounded-lg text-xs">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user.fullName}</span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {user.email}
-                    </span>
-                  </div>
-                </SidebarMenuButton>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton
+                    size="lg"
+                    className="data-[state=open]:bg-sidebar-accent"
+                  />
+                }
+              >
+                <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarFallback className="rounded-lg text-xs">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{user.fullName}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {user.email}
+                  </span>
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
