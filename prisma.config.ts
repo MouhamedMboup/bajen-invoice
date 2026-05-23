@@ -10,7 +10,8 @@ export default defineConfig({
   migrations: {
     path: "prisma/migrations",
   },
+  // Use DIRECT_URL for migrations to bypass pgBouncer
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });
