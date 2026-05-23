@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session — this keeps the user logged in
+  // Refresh session — keeps the user logged in across requests
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -40,12 +40,10 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Authenticated user trying to access auth pages → redirect to dashboard
   if (user && isAuthRoute) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Unauthenticated user trying to access protected pages → redirect to login
   if (!user && !isAuthRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
