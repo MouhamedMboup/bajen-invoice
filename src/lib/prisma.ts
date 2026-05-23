@@ -17,5 +17,12 @@ function getConnectionString(): string {
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 export const prisma =
   globalForPrisma.prisma ??
-  new PrismaClient({ adapter: new PrismaPg({ connectionString: getConnectionString(), max: 2 }) });
+  new PrismaClient({
+    adapter: new PrismaPg({
+      connectionString: getConnectionString(),
+      max: 2,
+      // Supabase requires SSL; pg adapter doesn't infer it from the URL
+      ssl: process.env.NODE_ENV === "production" ? true : undefined,
+    }),
+  });
 globalForPrisma.prisma = prisma;
