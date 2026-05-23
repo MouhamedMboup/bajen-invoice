@@ -2,8 +2,18 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function createPrismaClient() {
-  // DIRECT_URL bypasses pgBouncer — required for @prisma/adapter-pg
-  const connectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL!;
+  const directUrl = process.env.DIRECT_URL;
+  const dbUrl = process.env.DATABASE_URL;
+
+  console.log("[prisma] DIRECT_URL:", directUrl ? `set (${directUrl.substring(0, 40)}...)` : "NOT SET");
+  console.log("[prisma] DATABASE_URL:", dbUrl ? `set (${dbUrl.substring(0, 40)}...)` : "NOT SET");
+
+  const raw = directUrl ?? dbUrl!;
+  // Strip query params like ?pgbouncer=true which pg library doesn't understand
+  const connectionString = raw.split("?")[0];
+
+  console.log("[prisma] Using:", connectionString.substring(0, 50) + "...");
+
   const adapter = new PrismaPg({ connectionString });
   return new PrismaClient({ adapter });
 }

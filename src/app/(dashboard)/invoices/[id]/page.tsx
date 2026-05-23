@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Download } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -62,6 +65,13 @@ export default async function InvoiceDetailPage({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            render={<Link href={`/api/invoices/${invoice.id}/pdf`} target="_blank" />}
+            variant="outline"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download PDF
+          </Button>
           <InvoiceStatusSelect invoiceId={invoice.id} status={invoice.status} />
           {!isPaid && <AddPaymentDialog invoiceId={invoice.id} balance={balance} />}
           <DeleteInvoiceButton invoiceId={invoice.id} />

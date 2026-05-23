@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
   LayoutDashboard,
@@ -13,7 +13,6 @@ import {
   LogOut,
   PlusCircle,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import {
   Sidebar,
   SidebarContent,
@@ -50,14 +49,6 @@ interface AppSidebarProps {
 
 export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
-
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
 
   const initials = user.fullName
     .split(" ")
@@ -167,8 +158,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
+                {/* Server-side signout — clears cookie reliably */}
+                <DropdownMenuItem
+                  render={<Link href="/auth/signout" />}
+                  variant="destructive"
+                >
+                  <LogOut className="h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
