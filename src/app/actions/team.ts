@@ -45,15 +45,15 @@ export async function inviteUser(
 
   if (inviteError) {
     if (inviteError.message.toLowerCase().includes("already")) {
-      // User exists — generate a recovery link so they can set their password
-      const { data: recoveryData, error: recoveryError } = await admin.auth.admin.generateLink({
-        type: "recovery",
+      // User exists — send a magic link (works for both confirmed and unconfirmed users)
+      const { data: mlData, error: mlError } = await admin.auth.admin.generateLink({
+        type: "magiclink",
         email,
         options: { redirectTo: `${SITE_URL}/auth/callback?next=/update-password` },
       });
-      if (recoveryError) return { error: recoveryError.message };
-      actionLink = recoveryData.properties.action_link;
-      userId = recoveryData.user.id;
+      if (mlError) return { error: mlError.message };
+      actionLink = mlData.properties.action_link;
+      userId = mlData.user.id;
     } else {
       return { error: inviteError.message };
     }
@@ -80,7 +80,7 @@ export async function sendPasswordReset(
 
   const admin = createAdminClient();
   const { data, error } = await admin.auth.admin.generateLink({
-    type: "recovery",
+    type: "magiclink",
     email,
     options: { redirectTo: `${SITE_URL}/auth/callback?next=/update-password` },
   });
