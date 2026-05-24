@@ -24,16 +24,16 @@ export function InviteUserDialog() {
     const formData = new FormData(e.currentTarget);
 
     startTransition(async () => {
-      try {
-        await inviteUser(formData);
-        toast.success("Invitation sent", {
-          description: "The user will receive an email to set their password.",
-        });
-        formRef.current?.reset();
-        setOpen(false);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Something went wrong");
+      const result = await inviteUser(formData);
+      if (result?.error) {
+        toast.error(result.error);
+        return;
       }
+      toast.success("Invitation sent", {
+        description: "The user will receive an email to set their password.",
+      });
+      formRef.current?.reset();
+      setOpen(false);
     });
   }
 

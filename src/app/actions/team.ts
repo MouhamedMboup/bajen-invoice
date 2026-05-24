@@ -9,16 +9,17 @@ import type { Role } from "@/types";
 async function getAdminUser() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  if (!user) return null;
 
   const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!dbUser || dbUser.role !== "ADMIN") throw new Error("Forbidden");
+  if (!dbUser || dbUser.role !== "ADMIN") return null;
 
   return user;
 }
 
-export async function inviteUser(formData: FormData) {
-  await getAdminUser();
+export async function inviteUser(formData: FormData): Promise<{ error?: string }> {
+  const currentUser = await getAdminUser();
+  if (!currentUser) return { error: "Unauthorized" };
 
   const email = formData.get("email") as string;
   const fullName = formData.get("fullName") as string;
@@ -31,7 +32,7 @@ export async function inviteUser(formData: FormData) {
     redirectTo: `${siteUrl}/auth/callback?next=/update-password`,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) return { error: error.message };
 
   await prisma.user.upsert({
     where: { id: data.user.id },
@@ -40,20 +41,25 @@ export async function inviteUser(formData: FormData) {
   });
 
   revalidatePath("/team");
+  return {};
 }
 
-export async function updateUserRole(id: string, role: Role) {
+export async function updateUserRole(id: string, role: Role): Promise<{ error?: string }> {
   const currentUser = await getAdminUser();
-  if (id === currentUser.id) throw new Error("Cannot change your own role");
+  if (!currentUser) return { error: "Unauthorized" };
+  if (id === currentUser.id) return { error: "Cannot change your own role" };
 
   await prisma.user.update({ where: { id }, data: { role } });
   revalidatePath("/team");
+  return {};
 }
 
-export async function toggleUserActive(id: string, isActive: boolean) {
+export async function toggleUserActive(id: string, isActive: boolean): Promise<{ error?: string }> {
   const currentUser = await getAdminUser();
-  if (id === currentUser.id) throw new Error("Cannot deactivate yourself");
+  if (!currentUser) return { error: "Unauthorized" };
+  if (id === currentUser.id) return { error: "Cannot deactivate yourself" };
 
   await prisma.user.update({ where: { id }, data: { isActive } });
   revalidatePath("/team");
+  return {};
 }
