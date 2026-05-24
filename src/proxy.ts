@@ -33,10 +33,12 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/reset-password");
+  const isPublicAuthRoute =
+    pathname.startsWith("/auth/callback") || pathname.startsWith("/update-password");
   const isApiRoute = pathname.startsWith("/api");
   const isPublicAsset = pathname.startsWith("/_next") || pathname === "/favicon.ico";
 
-  if (isPublicAsset || isApiRoute) {
+  if (isPublicAsset || isApiRoute || isPublicAuthRoute) {
     return supabaseResponse;
   }
 
