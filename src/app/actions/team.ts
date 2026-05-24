@@ -44,7 +44,7 @@ export async function inviteUser(
   });
 
   if (inviteError) {
-    if (inviteError.message === "User already registered") {
+    if (inviteError.message.toLowerCase().includes("already")) {
       // User exists — generate a recovery link so they can set their password
       const { data: recoveryData, error: recoveryError } = await admin.auth.admin.generateLink({
         type: "recovery",
