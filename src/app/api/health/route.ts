@@ -18,6 +18,24 @@ export async function GET() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "(not set)";
   const isVercel = !!process.env.VERCEL;
 
+  // Also test the direct URL separately using a raw pg client
+  let directResult: string;
+  try {
+    const { Pool } = await import("pg");
+    const pool = new Pool({
+      connectionString: directUrl.split("?")[0],
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
+    });
+    const client = await pool.connect();
+    await client.query("SELECT 1");
+    client.release();
+    await pool.end();
+    directResult = "connected";
+  } catch (e) {
+    directResult = e instanceof Error ? e.message : String(e);
+  }
+
   try {
     await prisma.$queryRaw`SELECT 1 AS ok`;
     return NextResponse.json({
@@ -25,6 +43,7 @@ export async function GET() {
       isVercel,
       dbUrl: redact(dbUrl),
       directUrl: redact(directUrl),
+      directResult,
       supabaseUrl,
     });
   } catch (err) {
@@ -35,6 +54,7 @@ export async function GET() {
       isVercel,
       dbUrl: redact(dbUrl),
       directUrl: redact(directUrl),
+      directResult,
       supabaseUrl,
     }, { status: 500 });
   }
