@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   PlusCircle,
+  UsersRound,
 } from "lucide-react";
 import {
   Sidebar,
@@ -117,6 +118,15 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <SidebarGroupLabel>Admin</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      render={<Link href="/team" />}
+                      isActive={pathname === "/team"}
+                    >
+                      <UsersRound />
+                      Team
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
                       render={<Link href="/settings" />}
