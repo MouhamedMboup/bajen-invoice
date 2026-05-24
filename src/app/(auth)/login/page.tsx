@@ -55,13 +55,13 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="relative z-10">
-          <div className="inline-flex items-center rounded-xl bg-white/10 px-3 py-2 backdrop-blur-sm">
+          <div className="inline-flex items-center rounded-xl bg-white px-3 py-2">
             <Image
               src="/logo.png"
               alt="Bajen Sheabutter INC."
               width={150}
               height={52}
-              className="object-contain brightness-0 invert"
+              className="object-contain"
               priority
             />
           </div>
