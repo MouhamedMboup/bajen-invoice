@@ -1,44 +1,38 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { Pool } from "pg";
 
-// Redact password from URL for safe logging
 function redact(url: string) {
-  try {
-    const u = new URL(url);
-    u.password = "***";
-    return u.toString();
-  } catch {
-    return url.replace(/:([^@]+)@/, ":***@");
-  }
+  try { const u = new URL(url); u.password = "***"; return u.toString(); }
+  catch { return url.replace(/:([^@]+)@/, ":***@"); }
 }
 
-// Expose the actual computed connection string (password redacted)
-function getComputedUrl(): string {
-  const raw = process.env.VERCEL
-    ? process.env.DATABASE_URL!
-    : (process.env.DIRECT_URL ?? process.env.DATABASE_URL!);
-  const stripped = (raw ?? "").split("?")[0];
-  if (stripped.includes(".pooler.supabase.com")) {
-    const projectRef = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")
-      .replace("https://", "").split(".")[0];
-    if (projectRef && !stripped.includes(`postgres.${projectRef}`)) {
-      return redact(stripped.replace(/^(postgr(?:es|esql):\/\/)postgres:/, `$1postgres.${projectRef}:`));
-    }
+async function testPool(connectionString: string, tag: string) {
+  try {
+    const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, connectionTimeoutMillis: 6000 });
+    const client = await pool.connect();
+    const res = await client.query("SELECT current_user, version()");
+    client.release();
+    await pool.end();
+    return { tag, ok: true, user: res.rows[0].current_user };
+  } catch (e) {
+    return { tag, ok: false, error: e instanceof Error ? e.message : String(e) };
   }
-  return redact(stripped);
 }
 
 export async function GET() {
-  const isVercel = !!process.env.VERCEL;
-  const computedUrl = getComputedUrl();
-  const rawDbUrl = redact(process.env.DATABASE_URL ?? "(not set)");
-  const rawDirectUrl = redact(process.env.DIRECT_URL ?? "(not set)");
+  const poolerUrl = (process.env.DATABASE_URL ?? "").split("?")[0];
+  const directUrl = (process.env.DIRECT_URL ?? "").split("?")[0];
 
-  try {
-    await prisma.$queryRaw`SELECT 1 AS ok`;
-    return NextResponse.json({ db: "connected", isVercel, computedUrl, rawDbUrl, rawDirectUrl });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ db: "failed", error: msg, isVercel, computedUrl, rawDbUrl, rawDirectUrl }, { status: 500 });
-  }
+  const [poolerResult, directResult] = await Promise.allSettled([
+    testPool(poolerUrl, "pooler"),
+    testPool(directUrl, "direct"),
+  ]);
+
+  return NextResponse.json({
+    isVercel: !!process.env.VERCEL,
+    poolerUrl: redact(poolerUrl),
+    directUrl: redact(directUrl),
+    pooler: poolerResult.status === "fulfilled" ? poolerResult.value : { ok: false, error: String(poolerResult.reason) },
+    direct: directResult.status === "fulfilled" ? directResult.value : { ok: false, error: String(directResult.reason) },
+  }, { status: 200 });
 }
