@@ -12,50 +12,33 @@ function redact(url: string) {
   }
 }
 
-export async function GET() {
-  const dbUrl = process.env.DATABASE_URL ?? "(not set)";
-  const directUrl = process.env.DIRECT_URL ?? "(not set)";
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "(not set)";
-  const isVercel = !!process.env.VERCEL;
-
-  // Also test the direct URL separately using a raw pg client
-  let directResult: string;
-  try {
-    const { Pool } = await import("pg");
-    const pool = new Pool({
-      connectionString: directUrl.split("?")[0],
-      ssl: { rejectUnauthorized: false },
-      connectionTimeoutMillis: 5000,
-    });
-    const client = await pool.connect();
-    await client.query("SELECT 1");
-    client.release();
-    await pool.end();
-    directResult = "connected";
-  } catch (e) {
-    directResult = e instanceof Error ? e.message : String(e);
+// Expose the actual computed connection string (password redacted)
+function getComputedUrl(): string {
+  const raw = process.env.VERCEL
+    ? process.env.DATABASE_URL!
+    : (process.env.DIRECT_URL ?? process.env.DATABASE_URL!);
+  const stripped = (raw ?? "").split("?")[0];
+  if (stripped.includes(".pooler.supabase.com")) {
+    const projectRef = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")
+      .replace("https://", "").split(".")[0];
+    if (projectRef && !stripped.includes(`postgres.${projectRef}`)) {
+      return redact(stripped.replace(/^(postgr(?:es|esql):\/\/)postgres:/, `$1postgres.${projectRef}:`));
+    }
   }
+  return redact(stripped);
+}
+
+export async function GET() {
+  const isVercel = !!process.env.VERCEL;
+  const computedUrl = getComputedUrl();
+  const rawDbUrl = redact(process.env.DATABASE_URL ?? "(not set)");
+  const rawDirectUrl = redact(process.env.DIRECT_URL ?? "(not set)");
 
   try {
     await prisma.$queryRaw`SELECT 1 AS ok`;
-    return NextResponse.json({
-      db: "connected",
-      isVercel,
-      dbUrl: redact(dbUrl),
-      directUrl: redact(directUrl),
-      directResult,
-      supabaseUrl,
-    });
+    return NextResponse.json({ db: "connected", isVercel, computedUrl, rawDbUrl, rawDirectUrl });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({
-      db: "failed",
-      error: msg,
-      isVercel,
-      dbUrl: redact(dbUrl),
-      directUrl: redact(directUrl),
-      directResult,
-      supabaseUrl,
-    }, { status: 500 });
+    return NextResponse.json({ db: "failed", error: msg, isVercel, computedUrl, rawDbUrl, rawDirectUrl }, { status: 500 });
   }
 }
