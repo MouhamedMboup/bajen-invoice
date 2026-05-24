@@ -6,6 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/types";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bajen-invoice.vercel.app";
+
 async function getAdminUser() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -25,14 +27,21 @@ export async function inviteUser(formData: FormData): Promise<{ error?: string }
   const fullName = formData.get("fullName") as string;
   const role = formData.get("role") as Role;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bajen-invoice.vercel.app";
   const admin = createAdminClient();
   const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
     data: { full_name: fullName },
-    redirectTo: `${siteUrl}/auth/callback?next=/update-password`,
+    redirectTo: `${SITE_URL}/auth/callback?next=/update-password`,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message === "User already registered") {
+      return {
+        error:
+          "This email is already registered. Click the 'Resend invite' button next to their name in the table below.",
+      };
+    }
+    return { error: error.message };
+  }
 
   await prisma.user.upsert({
     where: { id: data.user.id },
@@ -41,6 +50,19 @@ export async function inviteUser(formData: FormData): Promise<{ error?: string }
   });
 
   revalidatePath("/team");
+  return {};
+}
+
+export async function sendPasswordReset(email: string): Promise<{ error?: string }> {
+  const currentUser = await getAdminUser();
+  if (!currentUser) return { error: "Unauthorized" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${SITE_URL}/auth/callback?next=/update-password`,
+  });
+
+  if (error) return { error: error.message };
   return {};
 }
 

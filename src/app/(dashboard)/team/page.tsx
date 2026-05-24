@@ -86,6 +86,7 @@ export default async function TeamPage() {
                     <div className="flex justify-end">
                       <UserActions
                         userId={user.id}
+                        email={user.email}
                         currentRole={user.role}
                         isActive={user.isActive}
                         isSelf={isSelf}
