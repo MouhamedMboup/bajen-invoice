@@ -108,3 +108,31 @@ export async function toggleUserActive(id: string, isActive: boolean): Promise<{
   revalidatePath("/team");
   return {};
 }
+
+export async function deleteUser(id: string): Promise<{ error?: string }> {
+  const currentUser = await getAdminUser();
+  if (!currentUser) return { error: "Unauthorized" };
+  if (id === currentUser.id) return { error: "Cannot delete yourself" };
+
+  const [invoiceCount, expenseCount] = await Promise.all([
+    prisma.invoice.count({ where: { createdById: id } }),
+    prisma.expense.count({ where: { createdById: id } }),
+  ]);
+
+  if (invoiceCount > 0 || expenseCount > 0) {
+    const parts: string[] = [];
+    if (invoiceCount > 0) parts.push(`${invoiceCount} invoice${invoiceCount !== 1 ? "s" : ""}`);
+    if (expenseCount > 0) parts.push(`${expenseCount} expense${expenseCount !== 1 ? "s" : ""}`);
+    return {
+      error: `Cannot delete — this user owns ${parts.join(" and ")}. Deactivate them instead.`,
+    };
+  }
+
+  await prisma.user.delete({ where: { id } });
+
+  const admin = createAdminClient();
+  await admin.auth.admin.deleteUser(id);
+
+  revalidatePath("/team");
+  return {};
+}

@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Trash2 } from "lucide-react";
 import type { Role } from "@/types";
-import { updateUserRole, toggleUserActive, sendPasswordReset } from "@/app/actions/team";
+import { updateUserRole, toggleUserActive, sendPasswordReset, deleteUser } from "@/app/actions/team";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,8 +26,10 @@ export function UserActions({ userId, email, currentRole, isActive, isSelf }: Us
   const [rolePending, startRoleTransition] = useTransition();
   const [activePending, startActiveTransition] = useTransition();
   const [resetPending, startResetTransition] = useTransition();
+  const [deletePending, startDeleteTransition] = useTransition();
   const [resetLink, setResetLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   function handleRoleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newRole = e.target.value as Role;
@@ -59,6 +61,15 @@ export function UserActions({ userId, email, currentRole, isActive, isSelf }: Us
     await navigator.clipboard.writeText(resetLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleDelete() {
+    startDeleteTransition(async () => {
+      const result = await deleteUser(userId);
+      if (result?.error) { toast.error(result.error); return; }
+      toast.success("User deleted");
+      setConfirmDelete(false);
+    });
   }
 
   if (isSelf) {
@@ -97,7 +108,38 @@ export function UserActions({ userId, email, currentRole, isActive, isSelf }: Us
         >
           {activePending ? "…" : isActive ? "Deactivate" : "Reactivate"}
         </Button>
+
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => setConfirmDelete(true)}
+          disabled={deletePending}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
       </div>
+
+      <Dialog open={confirmDelete} onOpenChange={(v) => { if (!v) setConfirmDelete(false); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Delete {email}?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <p className="text-sm text-muted-foreground">
+              This permanently removes the user from the app and revokes their login access. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setConfirmDelete(false)} disabled={deletePending}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={deletePending}>
+                {deletePending ? "Deleting…" : "Delete user"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!resetLink} onOpenChange={(v) => { if (!v) { setResetLink(null); setCopied(false); } }}>
         <DialogContent className="max-w-md">
