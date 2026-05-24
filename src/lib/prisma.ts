@@ -2,14 +2,24 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function getConnectionString(): string {
-  if (process.env.VERCEL) {
-    // Vercel cannot reach db.*.supabase.co (direct host).
-    // DATABASE_URL is the transaction pooler (port 6543) — always reachable.
-    // Strip query params because pg doesn't understand pgbouncer=true etc.
-    return process.env.DATABASE_URL!.split("?")[0];
+  const raw = process.env.VERCEL
+    ? process.env.DATABASE_URL!
+    : (process.env.DIRECT_URL ?? process.env.DATABASE_URL!);
+
+  let url = raw.split("?")[0];
+
+  // Supabase pooler (*.pooler.supabase.com) requires username format
+  // "postgres.<project-ref>" — plain "postgres" is rejected with XX000.
+  // Extract the project ref from NEXT_PUBLIC_SUPABASE_URL and fix the username.
+  if (url.includes(".pooler.supabase.com")) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    const projectRef = supabaseUrl.replace("https://", "").split(".")[0];
+    if (projectRef && !url.includes(`postgres.${projectRef}`)) {
+      url = url.replace(/^(postgr(?:es|esql):\/\/)postgres:/, `$1postgres.${projectRef}:`);
+    }
   }
-  // Local: use the direct URL (bypasses pgBouncer).
-  return (process.env.DIRECT_URL ?? process.env.DATABASE_URL!).split("?")[0];
+
+  return url;
 }
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
