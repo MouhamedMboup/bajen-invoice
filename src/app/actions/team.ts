@@ -9,6 +9,10 @@ import type { Role } from "@/types";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bajen-invoice.vercel.app";
 const SET_PASSWORD_URL = `${SITE_URL}/update-password`;
 
+function wrapInviteLink(actionLink: string): string {
+  return `${SITE_URL}/invite?link=${encodeURIComponent(actionLink)}`;
+}
+
 async function getAdminUser() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -70,7 +74,7 @@ export async function inviteUser(
   });
 
   revalidatePath("/team");
-  return { link: actionLink };
+  return { link: wrapInviteLink(actionLink) };
 }
 
 export async function sendPasswordReset(
@@ -87,7 +91,7 @@ export async function sendPasswordReset(
   });
 
   if (error) return { error: error.message };
-  return { link: data.properties.action_link };
+  return { link: wrapInviteLink(data.properties.action_link) };
 }
 
 export async function updateUserRole(id: string, role: Role): Promise<{ error?: string }> {

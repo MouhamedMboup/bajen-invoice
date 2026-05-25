@@ -34,7 +34,9 @@ export async function proxy(request: NextRequest) {
 
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/reset-password");
   const isPublicAuthRoute =
-    pathname.startsWith("/auth/callback") || pathname.startsWith("/update-password");
+    pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/update-password") ||
+    pathname.startsWith("/invite");
   const isApiRoute = pathname.startsWith("/api");
   const isPublicAsset = pathname.startsWith("/_next") || pathname === "/favicon.ico";
 
