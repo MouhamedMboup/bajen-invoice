@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import type { Role } from "@/types";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bajen-invoice.vercel.app";
+const SET_PASSWORD_URL = `${SITE_URL}/update-password`;
 
 async function getAdminUser() {
   const supabase = await createClient();
@@ -39,7 +40,7 @@ export async function inviteUser(
     email,
     options: {
       data: { full_name: fullName },
-      redirectTo: `${SITE_URL}/auth/callback?next=/update-password`,
+      redirectTo: SET_PASSWORD_URL,
     },
   });
 
@@ -49,7 +50,7 @@ export async function inviteUser(
       const { data: mlData, error: mlError } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email,
-        options: { redirectTo: `${SITE_URL}/auth/callback?next=/update-password` },
+        options: { redirectTo: SET_PASSWORD_URL },
       });
       if (mlError) return { error: mlError.message };
       actionLink = mlData.properties.action_link;
@@ -82,7 +83,7 @@ export async function sendPasswordReset(
   const { data, error } = await admin.auth.admin.generateLink({
     type: "magiclink",
     email,
-    options: { redirectTo: `${SITE_URL}/auth/callback?next=/update-password` },
+    options: { redirectTo: SET_PASSWORD_URL },
   });
 
   if (error) return { error: error.message };

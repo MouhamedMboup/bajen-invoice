@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,55 @@ export default function UpdatePasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
+
+  useEffect(() => {
+    async function initSession() {
+      // Check if there are tokens in the URL hash (Supabase redirected here directly)
+      const hash = window.location.hash;
+      if (hash) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token") ?? "";
+
+        if (accessToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!error) {
+            // Remove tokens from URL bar without triggering navigation
+            window.history.replaceState(null, "", window.location.pathname);
+            setSessionReady(true);
+            setSessionLoading(false);
+            return;
+          }
+        }
+      }
+
+      // No hash — check if there's already a valid session (e.g. logged-in user changing password)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setSessionReady(true);
+      } else {
+        setError("This link has expired or is invalid. Please request a new one.");
+      }
+      setSessionLoading(false);
+    }
+
+    initSession();
+
+    // Catch session arriving via auth state change (fallback)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "PASSWORD_RECOVERY") && session) {
+        setSessionReady(true);
+        setSessionLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,53 +118,59 @@ export default function UpdatePasswordPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                New password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Min. 8 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-                className="h-12 rounded-xl border-gray-200"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="confirm" className="text-sm font-medium text-gray-700">
-                Confirm password
-              </Label>
-              <Input
-                id="confirm"
-                type="password"
-                placeholder="Repeat your password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                required
-                autoComplete="new-password"
-                className="h-12 rounded-xl border-gray-200"
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
-                {error}
+          {sessionLoading ? (
+            <p className="text-sm text-gray-400">Verifying your link…</p>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  New password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Min. 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={!sessionReady}
+                  autoComplete="new-password"
+                  className="h-12 rounded-xl border-gray-200"
+                />
               </div>
-            )}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="h-12 w-full rounded-xl text-sm font-semibold"
-            >
-              {loading ? "Saving…" : "Set password & sign in"}
-            </Button>
-          </form>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirm" className="text-sm font-medium text-gray-700">
+                  Confirm password
+                </Label>
+                <Input
+                  id="confirm"
+                  type="password"
+                  placeholder="Repeat your password"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  required
+                  disabled={!sessionReady}
+                  autoComplete="new-password"
+                  className="h-12 rounded-xl border-gray-200"
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading || !sessionReady}
+                className="h-12 w-full rounded-xl text-sm font-semibold"
+              >
+                {loading ? "Saving…" : "Set password & sign in"}
+              </Button>
+            </form>
+          )}
         </div>
       </div>
     </div>
