@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,6 +121,18 @@ export default function UpdatePasswordPage() {
 
           {sessionLoading ? (
             <p className="text-sm text-gray-400">Verifying your link…</p>
+          ) : !sessionReady ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+                {error ?? "This link has expired or is invalid."}
+              </div>
+              <Link
+                href="/reset-password"
+                className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Request a new reset link
+              </Link>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
@@ -133,7 +146,6 @@ export default function UpdatePasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  disabled={!sessionReady}
                   autoComplete="new-password"
                   className="h-12 rounded-xl border-gray-200"
                 />
@@ -150,7 +162,6 @@ export default function UpdatePasswordPage() {
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   required
-                  disabled={!sessionReady}
                   autoComplete="new-password"
                   className="h-12 rounded-xl border-gray-200"
                 />
@@ -164,7 +175,7 @@ export default function UpdatePasswordPage() {
 
               <Button
                 type="submit"
-                disabled={loading || !sessionReady}
+                disabled={loading}
                 className="h-12 w-full rounded-xl text-sm font-semibold"
               >
                 {loading ? "Saving…" : "Set password & sign in"}

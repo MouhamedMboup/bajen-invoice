@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,14 +19,29 @@ export default function ResetPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error") === "link_expired") {
+      setError("Your reset link has expired. Enter your email to request a new one.");
+    }
+  }, []);
 
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     setLoading(true);
 
-    await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
     });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
 
     setSent(true);
     setLoading(false);
@@ -64,6 +79,12 @@ export default function ResetPasswordPage() {
                 required
               />
             </div>
+
+            {error && (
+              <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2.5 text-sm text-red-600">
+                {error}
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Sending…" : "Send reset link"}

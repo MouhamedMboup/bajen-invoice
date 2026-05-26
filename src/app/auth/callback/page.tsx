@@ -14,6 +14,8 @@ export default function AuthCallbackPage() {
       const search = window.location.search;
       const params = new URLSearchParams(search);
       const next = params.get("next") ?? "/dashboard";
+      const isRecovery = next === "/update-password";
+      let tokenAttempted = false;
 
       // Implicit flow: token in URL hash (magic links, invite links)
       if (hash) {
@@ -22,6 +24,7 @@ export default function AuthCallbackPage() {
         const refreshToken = hashParams.get("refresh_token") ?? "";
 
         if (accessToken) {
+          tokenAttempted = true;
           const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -36,6 +39,7 @@ export default function AuthCallbackPage() {
       // PKCE flow: code in query string
       const code = params.get("code");
       if (code) {
+        tokenAttempted = true;
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
           router.replace(next);
@@ -47,6 +51,7 @@ export default function AuthCallbackPage() {
       const tokenHash = params.get("token_hash");
       const type = params.get("type") as Parameters<typeof supabase.auth.verifyOtp>[0]["type"];
       if (tokenHash && type) {
+        tokenAttempted = true;
         const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
         if (!error) {
           router.replace(next);
@@ -54,8 +59,12 @@ export default function AuthCallbackPage() {
         }
       }
 
-      // Nothing matched — send to login
-      router.replace("/login");
+      // All attempts failed — route to the right page with context
+      if (tokenAttempted && isRecovery) {
+        router.replace("/reset-password?error=link_expired");
+      } else {
+        router.replace("/login");
+      }
     }
 
     handleCallback();
