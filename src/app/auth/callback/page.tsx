@@ -13,8 +13,23 @@ export default function AuthCallbackPage() {
       const hash = window.location.hash;
       const search = window.location.search;
       const params = new URLSearchParams(search);
-      const next = params.get("next") ?? "/dashboard";
-      const isRecovery = next === "/update-password";
+
+      // Detect token type from the URL — Supabase may not preserve ?next= through redirects
+      const tokenTypeInHash = hash
+        ? new URLSearchParams(hash.substring(1)).get("type")
+        : null;
+      const tokenTypeInQuery = params.get("type");
+      const detectedType = tokenTypeInHash ?? tokenTypeInQuery;
+
+      // recovery/invite always need the password-setup page; fall back to that
+      // even when ?next= was stripped by Supabase's email redirect chain
+      const next =
+        params.get("next") ??
+        (detectedType === "recovery" || detectedType === "invite"
+          ? "/update-password"
+          : "/dashboard");
+
+      const isRecovery = next === "/update-password" || detectedType === "recovery";
       let tokenAttempted = false;
 
       // Implicit flow: token in URL hash (magic links, invite links)
