@@ -27,10 +27,25 @@ npx prisma studio                        # open Prisma Studio (DB browser)
 ### Auth flow
 
 Two layers work together:
-1. `src/middleware.ts` — refreshes the Supabase session cookie on every request; redirects unauthenticated users to `/login` and authenticated users away from auth routes.
+1. `src/proxy.ts` — Next.js 16 middleware (the file is named `proxy.ts`, not `middleware.ts`). Refreshes the Supabase session cookie on every request; redirects unauthenticated users to `/login` and authenticated users away from auth routes. Public auth routes (bypassed regardless of session): `/auth/callback`, `/auth/confirm`, `/update-password`, `/invite`.
 2. `src/(dashboard)/layout.tsx` — Server Component that re-validates the session AND checks the Prisma `users` table for `isActive`. If the DB user is missing or inactive, it signs out and redirects.
 
 Users are stored in **both** Supabase Auth (`auth.users`) and our Prisma `users` table. A Supabase trigger is expected to mirror `auth.users` inserts into the `users` table. The Supabase user `id` is the primary key in the `users` table.
+
+#### Auth callback routes
+
+- `src/app/auth/callback/page.tsx` — handles Supabase redirects after token verification (implicit hash, PKCE code, and token_hash flows). Routes `type=recovery` and `type=invite` to `/update-password`.
+- `src/app/auth/confirm/page.tsx` — same logic as callback; handles the token_hash OTP format used by the "Reset Password" email template.
+- `src/app/page.tsx` — client component that intercepts hash-based recovery/invite tokens before redirecting to `/dashboard`.
+
+#### Link preview protection
+
+WhatsApp and other messaging apps prefetch URLs in emails, which would consume Supabase one-time tokens. Two mitigations are in place:
+
+- **Invite links**: wrapped in `${SITE_URL}/invite?link=<encoded-supabase-url>`. The bot sees a static landing page; only an explicit button click navigates to the Supabase URL.
+- **Password reset links**: the Supabase "Reset Password" email template uses `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery` instead of `{{ .ConfirmationURL }}`. The bot fetches our page but cannot execute JavaScript, so `verifyOtp` is never called and the token stays valid.
+
+> If you ever regenerate or reset the Supabase email template, restore it to use the token_hash format above — reverting to `{{ .ConfirmationURL }}` will break password reset for users on WhatsApp.
 
 ### Database / Prisma 7
 
