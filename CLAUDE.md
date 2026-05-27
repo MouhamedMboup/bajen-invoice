@@ -66,6 +66,31 @@ This project uses **`@base-ui/react`** for interactive primitives (Dialog, Selec
 
 Shadcn-style component wrappers live in `src/components/ui/`. Do not add new `asChild` usages.
 
+#### Base UI `Select` — required `items` and `label` props
+
+Every `<Select>` root **must** receive `items` (array of `{ value, label }` objects) and every `<SelectItem>` **must** receive a `label` prop matching its display text. Base UI uses these for keyboard type-ahead and value display:
+
+```tsx
+<Select value={v} onValueChange={...} items={options.map(o => ({ value: o.id, label: o.name }))}>
+  <SelectItem value={o.id} label={o.name}>{o.name}</SelectItem>
+```
+
+#### `SearchableSelect` — for long lists
+
+Use `src/components/ui/searchable-select.tsx` instead of the plain `Select` when a dropdown contains many items (e.g. customers, products). It renders a full-width trigger button and, on click, replaces it with a live-filter search input. Escape or click-outside closes it.
+
+```tsx
+<SearchableSelect
+  value={selectedId}
+  onValueChange={(id) => setSelectedId(id)}
+  options={items.map(i => ({ value: i.id, label: i.name }))}
+  placeholder="Select…"
+  searchPlaceholder="Search…"
+/>
+```
+
+It is a pure client component with no external dependencies — no Base UI Combobox, no portals.
+
 ### Server Actions
 
 All mutations go through `"use server"` files in `src/app/actions/`. Every action calls `getAuthUser()` first (re-validates the Supabase session) before touching the database. After mutations, call `revalidatePath()` to invalidate the relevant page cache.

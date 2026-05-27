@@ -8,14 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { createInvoice } from "@/app/actions/invoices";
 import type { Customer, Product } from "@/types";
 
@@ -114,18 +108,13 @@ export function NewInvoiceForm({ customers, products }: NewInvoiceFormProps) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="space-y-1 sm:col-span-2">
             <Label>Customer *</Label>
-            <Select value={customerId} onValueChange={(v) => { if (v) setCustomerId(v); }} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select customer" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.companyName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SearchableSelect
+              value={customerId}
+              onValueChange={setCustomerId}
+              options={customers.map((c) => ({ value: c.id, label: c.companyName }))}
+              placeholder="Select customer"
+              searchPlaceholder="Search customers…"
+            />
           </div>
           <div className="space-y-1">
             <Label htmlFor="dueDate">Due Date</Label>
@@ -147,21 +136,13 @@ export function NewInvoiceForm({ customers, products }: NewInvoiceFormProps) {
             <div key={index} className="grid grid-cols-12 gap-2 items-end">
               <div className="col-span-4 space-y-1">
                 <Label className="text-xs text-muted-foreground">Product</Label>
-                <Select
+                <SearchableSelect
                   value={item.productId ?? ""}
                   onValueChange={(v) => { if (v) handleProductSelect(index, v); }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select product" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={products.map((p) => ({ value: p.id, label: p.name }))}
+                  placeholder="Select product"
+                  searchPlaceholder="Search products…"
+                />
               </div>
               <div className="col-span-3 space-y-1">
                 <Label className="text-xs text-muted-foreground">Name (custom)</Label>
