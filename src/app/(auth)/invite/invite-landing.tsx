@@ -40,10 +40,10 @@ export function InviteLanding() {
         <div className="rounded-2xl border bg-white px-8 py-10 shadow-sm space-y-6 text-center">
           <div className="space-y-2">
             <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-              You're invited!
+              You&apos;re invited!
             </h2>
             <p className="text-sm text-gray-500 leading-relaxed">
-              You've been invited to join Bajen Sheabutter INC. on Bajen Invoice.
+              You&apos;ve been invited to join Bajen Sheabutter INC. on Bajen Invoice.
               Click the button below to accept and set up your account.
             </p>
           </div>

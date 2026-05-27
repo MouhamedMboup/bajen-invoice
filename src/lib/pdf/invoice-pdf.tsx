@@ -184,6 +184,7 @@ export function InvoicePDF({ invoice, logoSrc }: Props) {
 
         {/* ── Header ── */}
         <View style={s.header}>
+          {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <Image src={logoSrc} style={s.logo} />
           <View style={s.companyBlock}>
             <Text style={s.companyName}>Bajen Sheabutter INC.</Text>

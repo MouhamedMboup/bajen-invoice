@@ -13,18 +13,6 @@ async function getAuthUser() {
   return user;
 }
 
-async function nextInvoiceNumber(): Promise<string> {
-  const counter = await prisma.invoiceCounter.upsert({
-    where: { id: 1 },
-    create: { id: 1, nextNumber: 2 },
-    update: { nextNumber: { increment: 1 } },
-  });
-  // counter.nextNumber is already incremented; the invoice number is the value before increment
-  // We upsert: on create nextNumber=2 (means we just created #1), on update we get the new value
-  // So the invoice number = nextNumber - 1 when updating, or 1 when creating
-  // Simpler: read first, then increment
-  return `INV-${String(counter.nextNumber - 1 || 1).padStart(4, "0")}`;
-}
 
 export interface InvoiceLineItem {
   productId: string | null;

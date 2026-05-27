@@ -79,6 +79,10 @@ export function NewInvoiceForm({ customers, products }: NewInvoiceFormProps) {
       toast.error("All line items need a product name");
       return;
     }
+    if (total < 0) {
+      toast.error("Invoice discount exceeds the total — please reduce the discount");
+      return;
+    }
 
     startTransition(async () => {
       try {
