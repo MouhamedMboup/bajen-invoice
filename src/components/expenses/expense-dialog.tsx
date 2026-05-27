@@ -92,13 +92,13 @@ export function ExpenseDialog({ expense, trigger }: ExpenseDialogProps) {
           <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
               <Label>Category *</Label>
-              <Select value={category} onValueChange={(v) => { if (v) setCategory(v); }}>
+              <Select value={category} onValueChange={(v) => { if (v) setCategory(v); }} items={EXPENSE_CATEGORIES.map(c => ({ value: c.value, label: c.label }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
                   {EXPENSE_CATEGORIES.map((c) => (
-                    <SelectItem key={c.value} value={c.value}>
+                    <SelectItem key={c.value} value={c.value} label={c.label}>
                       {c.label}
                     </SelectItem>
                   ))}

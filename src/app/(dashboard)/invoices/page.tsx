@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +54,7 @@ export default async function InvoicesPage() {
                 <TableHead className="text-right">Balance</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,6 +99,16 @@ export default async function InvoicesPage() {
                         day: "numeric",
                         year: "numeric",
                       })}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        render={<Link href={`/invoices/${inv.id}/edit`} />}
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 );

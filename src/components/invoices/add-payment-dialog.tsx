@@ -84,13 +84,13 @@ export function AddPaymentDialog({
           </div>
           <div className="space-y-1">
             <Label>Method</Label>
-            <Select value={method} onValueChange={(v) => { if (v) setMethod(v); }}>
+            <Select value={method} onValueChange={(v) => { if (v) setMethod(v); }} items={PAYMENT_METHODS.map(m => ({ value: m.value, label: m.label }))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {PAYMENT_METHODS.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
+                  <SelectItem key={m.value} value={m.value} label={m.label}>
                     {m.label}
                   </SelectItem>
                 ))}

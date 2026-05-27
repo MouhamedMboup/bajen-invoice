@@ -97,13 +97,13 @@ export function ProductDialog({ product, categories, trigger }: ProductDialogPro
             </div>
             <div className="space-y-1">
               <Label>Category</Label>
-              <Select value={categoryId} onValueChange={(v) => { if (v) setCategoryId(v); }}>
+              <Select value={categoryId} onValueChange={(v) => { if (v) setCategoryId(v); }} items={categories.map(cat => ({ value: cat.id, label: cat.name }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
+                    <SelectItem key={cat.id} value={cat.id} label={cat.name}>
                       {cat.name}
                     </SelectItem>
                   ))}

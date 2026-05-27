@@ -97,6 +97,57 @@ export async function createInvoice(data: {
   redirect(`/invoices/${invoice.id}`);
 }
 
+export async function updateInvoice(id: string, data: {
+  customerId: string;
+  dueDate: string | null;
+  taxRate: number;
+  discountAmount: number;
+  notes: string | null;
+  items: InvoiceLineItem[];
+}) {
+  const user = await getAuthUser();
+
+  const subtotal = data.items.reduce((sum, item) => {
+    return sum + item.quantity * item.unitPrice - item.discount;
+  }, 0);
+
+  const taxAmount = (subtotal * data.taxRate) / 100;
+  const total = subtotal + taxAmount - data.discountAmount;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.invoiceItem.deleteMany({ where: { invoiceId: id } });
+    await tx.invoice.update({
+      where: { id },
+      data: {
+        customerId: data.customerId,
+        subtotal,
+        taxRate: data.taxRate,
+        taxAmount,
+        discountAmount: data.discountAmount,
+        total,
+        notes: data.notes,
+        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        updatedById: user.id,
+        items: {
+          create: data.items.map((item) => ({
+            productId: item.productId,
+            productName: item.productName,
+            productSku: item.productSku,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            discount: item.discount,
+            total: item.quantity * item.unitPrice - item.discount,
+          })),
+        },
+      },
+    });
+  });
+
+  revalidatePath("/invoices");
+  revalidatePath(`/invoices/${id}`);
+  redirect(`/invoices/${id}`);
+}
+
 export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
   await getAuthUser();
   await prisma.invoice.update({ where: { id }, data: { status } });

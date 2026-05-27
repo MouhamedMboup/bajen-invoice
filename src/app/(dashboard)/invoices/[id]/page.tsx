@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -65,6 +65,13 @@ export default async function InvoiceDetailPage({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            render={<Link href={`/invoices/${invoice.id}/edit`} />}
+            variant="outline"
+          >
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
           <Button
             render={<Link href={`/api/invoices/${invoice.id}/pdf`} target="_blank" />}
             variant="outline"

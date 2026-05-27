@@ -43,13 +43,13 @@ export function InvoiceStatusSelect({
   }
 
   return (
-    <Select value={status} onValueChange={(v) => { if (v) handleChange(v); }} disabled={pending}>
+    <Select value={status} onValueChange={(v) => { if (v) handleChange(v); }} disabled={pending} items={STATUSES.map(s => ({ value: s.value, label: s.label }))}>
       <SelectTrigger className="w-36">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {STATUSES.map((s) => (
-          <SelectItem key={s.value} value={s.value}>
+          <SelectItem key={s.value} value={s.value} label={s.label}>
             {s.label}
           </SelectItem>
         ))}
