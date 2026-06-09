@@ -188,9 +188,9 @@ export function InvoicePDF({ invoice, logoSrc }: Props) {
           <Image src={logoSrc} style={s.logo} />
           <View style={s.companyBlock}>
             <Text style={s.companyName}>Bajen Sheabutter INC.</Text>
-            <Text style={s.companyMeta}>info@bajensheabutter.com</Text>
-            <Text style={s.companyMeta}>+1 (555) 000-0000</Text>
-            <Text style={s.companyMeta}>New York, NY, USA</Text>
+            <Text style={s.companyMeta}>bajensheabutter@gmail.com</Text>
+            <Text style={s.companyMeta}>718 552 2808 / 212-915-2303</Text>
+            <Text style={s.companyMeta}>1129 Longfellow Ave., Bronx, NY 10459</Text>
           </View>
         </View>
 
