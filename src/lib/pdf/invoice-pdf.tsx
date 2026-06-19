@@ -168,9 +168,10 @@ function fmtDate(d: Date | string | null) {
 interface Props {
   invoice: InvoiceWithRelations;
   logoSrc: string;
+  hideFinancials?: boolean;
 }
 
-export function InvoicePDF({ invoice, logoSrc }: Props) {
+export function InvoicePDF({ invoice, logoSrc, hideFinancials = false }: Props) {
   const totalPaid = invoice.payments.reduce((s, p) => s + Number(p.amount), 0);
   const balance = Number(invoice.total) - totalPaid;
 
@@ -264,42 +265,44 @@ export function InvoicePDF({ invoice, logoSrc }: Props) {
         ))}
 
         {/* ── Totals ── */}
-        <View style={s.totalsSection}>
-          <View style={s.totalsBox}>
-            <View style={s.totalsRow}>
-              <Text style={s.totalsLabel}>Subtotal</Text>
-              <Text style={s.totalsValue}>{fmt(invoice.subtotal)}</Text>
-            </View>
-            {Number(invoice.taxRate) > 0 && (
+        {!hideFinancials && (
+          <View style={s.totalsSection}>
+            <View style={s.totalsBox}>
               <View style={s.totalsRow}>
-                <Text style={s.totalsLabel}>Tax ({Number(invoice.taxRate)}%)</Text>
-                <Text style={s.totalsValue}>{fmt(invoice.taxAmount)}</Text>
+                <Text style={s.totalsLabel}>Subtotal</Text>
+                <Text style={s.totalsValue}>{fmt(invoice.subtotal)}</Text>
               </View>
-            )}
-            {Number(invoice.discountAmount) > 0 && (
+              {Number(invoice.taxRate) > 0 && (
+                <View style={s.totalsRow}>
+                  <Text style={s.totalsLabel}>Tax ({Number(invoice.taxRate)}%)</Text>
+                  <Text style={s.totalsValue}>{fmt(invoice.taxAmount)}</Text>
+                </View>
+              )}
+              {Number(invoice.discountAmount) > 0 && (
+                <View style={s.totalsRow}>
+                  <Text style={s.totalsLabel}>Discount</Text>
+                  <Text style={s.totalsValue}>-{fmt(invoice.discountAmount)}</Text>
+                </View>
+              )}
+              <View style={s.totalsDivider} />
               <View style={s.totalsRow}>
-                <Text style={s.totalsLabel}>Discount</Text>
-                <Text style={s.totalsValue}>-{fmt(invoice.discountAmount)}</Text>
+                <Text style={s.totalsBold}>Total</Text>
+                <Text style={s.totalsBold}>{fmt(invoice.total)}</Text>
               </View>
-            )}
-            <View style={s.totalsDivider} />
-            <View style={s.totalsRow}>
-              <Text style={s.totalsBold}>Total</Text>
-              <Text style={s.totalsBold}>{fmt(invoice.total)}</Text>
-            </View>
-            {totalPaid > 0 && (
+              {totalPaid > 0 && (
+                <View style={s.totalsRow}>
+                  <Text style={s.totalsLabel}>Total Paid</Text>
+                  <Text style={s.totalsValue}>{fmt(totalPaid)}</Text>
+                </View>
+              )}
+              <View style={s.totalsDivider} />
               <View style={s.totalsRow}>
-                <Text style={s.totalsLabel}>Total Paid</Text>
-                <Text style={s.totalsValue}>{fmt(totalPaid)}</Text>
+                <Text style={s.totalsBalance}>Balance Due</Text>
+                <Text style={s.totalsBalance}>{fmt(balance)}</Text>
               </View>
-            )}
-            <View style={s.totalsDivider} />
-            <View style={s.totalsRow}>
-              <Text style={s.totalsBalance}>Balance Due</Text>
-              <Text style={s.totalsBalance}>{fmt(balance)}</Text>
             </View>
           </View>
-        </View>
+        )}
 
         {/* ── Notes ── */}
         {invoice.notes && (
@@ -310,7 +313,7 @@ export function InvoicePDF({ invoice, logoSrc }: Props) {
         )}
 
         {/* ── Payment history ── */}
-        {invoice.payments.length > 0 && (
+        {!hideFinancials && invoice.payments.length > 0 && (
           <View style={s.paymentsSection}>
             <Text style={s.paymentsTitle}>Payment History</Text>
             <View style={s.tableHeader}>

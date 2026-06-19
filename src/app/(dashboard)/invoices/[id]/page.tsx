@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, Pencil } from "lucide-react";
+import { Download, EyeOff, Pencil } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -78,6 +78,13 @@ export default async function InvoiceDetailPage({
           >
             <Download className="mr-2 h-4 w-4" />
             Download PDF
+          </Button>
+          <Button
+            render={<Link href={`/api/invoices/${invoice.id}/pdf?hideFinancials=1`} target="_blank" />}
+            variant="outline"
+          >
+            <EyeOff className="mr-2 h-4 w-4" />
+            No Financials
           </Button>
           <InvoiceStatusSelect invoiceId={invoice.id} status={invoice.status} />
           {!isPaid && <AddPaymentDialog invoiceId={invoice.id} balance={balance} />}
