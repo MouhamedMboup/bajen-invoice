@@ -113,3 +113,26 @@ Client Component (dialog) → calls server action → revalidatePath → Server 
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server-only) |
+
+> `NEXT_PUBLIC_*` vars are inlined **at build time**. Changing them in Vercel requires a **redeploy** to take effect — updating them alone does nothing to the already-built client bundle.
+
+## Troubleshooting
+
+### Login fails with "Failed to fetch" (no HTTP status)
+
+Symptom: the login page shows `Failed to fetch` and the Network tab is full of `(failed) net::…` entries on `POST /auth/v1/token?grant_type=refresh_token`. These are **network-level** failures (the request never reaches Supabase), *not* auth errors — a wrong password returns an HTTP `400` with a JSON body instead.
+
+Most common cause: the **Supabase project is paused**. Free-tier projects auto-pause after ~1 week of inactivity, and a paused (or deleted) project's subdomain stops resolving in DNS.
+
+Diagnose from the shell:
+
+```bash
+# Pull the project host and confirm whether it resolves.
+URL=$(grep -E '^NEXT_PUBLIC_SUPABASE_URL=' .env.local | cut -d= -f2- | tr -d '\r"')
+nslookup "${URL#https://}"            # NXDOMAIN ⇒ project paused/deleted
+curl -s -o /dev/null -w 'HTTP %{http_code}\n' "$URL/auth/v1/health"  # exit 6 ⇒ host unreachable
+```
+
+If the host returns **NXDOMAIN**, restore the project from the [Supabase dashboard](https://supabase.com/dashboard) (Restore/Resume). Wait a couple of minutes for DNS to propagate, then re-run the `curl` health check before retrying login.
+
+If the host **does** resolve but requests still fail, check the browser Console for the exact `net::ERR_*` code (CORS, blocked by extension, etc.) and verify the Vercel env vars match `.env.local`, then redeploy.
