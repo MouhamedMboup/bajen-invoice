@@ -4,6 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 @AGENTS.md
 
+## Current status (read me first — remove once done)
+
+**Last updated: 2026-11-12.** Picking up on another machine? This is where things stand.
+
+### Blocker
+The Supabase project (`hawjvztlmfmogxmtpxcn`) was **paused** (free-tier auto-pause), which broke login — see Troubleshooting below. **Permanent fix in progress:** the owner has a Supabase **Pro** account; Pro orgs never auto-pause. Plan is to either upgrade the org holding this project to Pro, or transfer the project into the existing Pro org (project ref/URL/keys stay the same either way — no code or Vercel env changes). **First step in all cases: restore/resume the paused project** so it resolves in DNS again. Nothing proceeds until the DB is back up.
+
+### Approved feature work — NOT yet implemented
+A design was brainstormed and approved for four features. No spec file, no code changes, and no DB changes have been made yet. Decisions locked in:
+
+1. **Delete button on the Invoices list** — add a trash/delete action next to the edit pencil in the `/invoices` table. Reuse the existing `deleteInvoice` action; use a confirmation **Dialog** (like `delete-customer-button.tsx`), not `confirm()`. When deleting from the list, revalidate in place instead of redirecting.
+2. **Reset invoice numbering to #1** — via a standalone script `scripts/reset-invoices.ts` (run with `npx tsx`, guarded by a `--confirm` flag). In one transaction: delete all `Payment`, `InvoiceItem`, `Invoice` rows, then reset `InvoiceCounter` id=1 to `nextNumber = 1`. Decision: **delete ALL existing invoices** (all current data is test data) → next invoice becomes `INV-0001`. Runs once, after Supabase is restored.
+3. **Customer profile page** `/customers/[id]` — new Server Component; make the company name in the customers list link to it. Shows contact card, stat tiles (# invoices · total billed · total paid · outstanding balance), their invoices table (rows link to invoice, grouped by year), and a payment-history table across all their invoices.
+4. **Yearly grouping on the Invoices list** — split `/invoices` into year sections (newest first), each header showing that year's total outstanding balance. Year derived from `createdAt`.
+
+**Scope guard:** no Prisma schema changes, no new dependencies — everything is derivable from existing data.
+
+**Next step when resuming:** restore Supabase → confirm health → write the spec (`docs/superpowers/specs/`) → implementation plan → build → run reset script → browser-test end-to-end.
+
 ## Commands
 
 ```bash
@@ -134,5 +153,7 @@ curl -s -o /dev/null -w 'HTTP %{http_code}\n' "$URL/auth/v1/health"  # exit 6 �
 ```
 
 If the host returns **NXDOMAIN**, restore the project from the [Supabase dashboard](https://supabase.com/dashboard) (Restore/Resume). Wait a couple of minutes for DNS to propagate, then re-run the `curl` health check before retrying login.
+
+> **Permanent fix:** free-tier projects auto-pause after ~1 week idle; **Pro-plan orgs never auto-pause.** Billing is per *organization* in Supabase, so either upgrade the org holding this project to Pro, or transfer the project into an existing Pro org (Project → Settings → General → Transfer project). The project ref/URL/keys are unchanged either way, so no code or Vercel env changes are needed. The project must be restored (not paused) before it can be transferred.
 
 If the host **does** resolve but requests still fail, check the browser Console for the exact `net::ERR_*` code (CORS, blocked by extension, etc.) and verify the Vercel env vars match `.env.local`, then redeploy.
