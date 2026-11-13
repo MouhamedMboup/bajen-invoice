@@ -1,7 +1,7 @@
 # Invoice list improvements, customer profile, and numbering reset — design
 
 **Date:** 2026-11-13
-**Status:** Awaiting approval
+**Status:** Approved 2026-11-13
 **Scope guard:** no Prisma schema changes, no new dependencies. Everything is derived from existing data.
 
 ## Why
@@ -108,7 +108,7 @@ Decimals are converted with `Number(...)`, as the existing pages do.
   - **Payment history:** every payment across this customer's invoices, newest first. Columns: Date (`paidAt`) · Invoice # (links to the invoice) · Method (readable label) · Amount · Notes.
   - Empty states: "No invoices yet." and "No payments recorded."
 - **Customers list:** the company name becomes a `Link` to `/customers/[id]`, with `hover:underline` as on the invoices list.
-- **Totals and drafts:** *my call:* drafts are included in all totals, matching how `/invoices` and the dashboard compute balances today. See open questions.
+- **Totals and drafts:** *my call:* drafts are included in all totals, matching how `/invoices` and the dashboard compute balances today (confirmed at approval).
 
 ### 4. Yearly grouping on `/invoices`
 
@@ -130,9 +130,9 @@ The repo has no test runner, and adding one would break the no-new-dependencies 
   4. the year headers are correct.
 - Reset script: a dry run first (counts only), then `--confirm` after approval; then create one invoice and check that it's `INV-0001`.
 
-## Open questions for approval
+## Decisions at approval
 
-1. **Drafts in totals:** should `DRAFT` invoices count toward "Outstanding" and "Total billed"? The spec currently says **yes**, to match today's list and dashboard.
+1. **Drafts in totals:** `DRAFT` invoices **are included** in Outstanding and Total billed, matching the existing list and dashboard, so all screens agree. If drafts are excluded later, do it everywhere at once.
 
 ## Left to the builder
 
