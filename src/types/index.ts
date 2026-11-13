@@ -52,3 +52,13 @@ export type DashboardStats = {
   unpaidCount: number;
   lowStockCount: number;
 };
+
+// Plain (serializable) shapes passed from Server Components to the invoice forms.
+// Prisma Decimals can't cross the client boundary, so prices are plain numbers.
+export type InvoiceFormCustomer = { id: string; companyName: string };
+export type InvoiceFormProduct = {
+  id: string;
+  name: string;
+  sku: string | null;
+  wholesalePrice: number;
+};

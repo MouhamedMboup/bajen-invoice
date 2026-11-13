@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { updateInvoice } from "@/app/actions/invoices";
-import type { Customer, Product } from "@/types";
+import type { InvoiceFormCustomer, InvoiceFormProduct } from "@/types";
 
 interface LineItem {
   productId: string | null;
@@ -30,8 +30,8 @@ interface EditInvoiceFormProps {
   initialDiscountAmount: number;
   initialNotes: string;
   initialItems: LineItem[];
-  customers: Customer[];
-  products: Product[];
+  customers: InvoiceFormCustomer[];
+  products: InvoiceFormProduct[];
 }
 
 export function EditInvoiceForm({
@@ -65,7 +65,7 @@ export function EditInvoiceForm({
         productId: product.id,
         productName: product.name,
         productSku: product.sku,
-        unitPrice: Number(product.wholesalePrice),
+        unitPrice: product.wholesalePrice,
       });
     }
   }

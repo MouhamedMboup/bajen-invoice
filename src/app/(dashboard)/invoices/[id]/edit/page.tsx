@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { getInvoiceFormOptions } from "@/lib/invoice-form-options";
 import { EditInvoiceForm } from "@/components/invoices/edit-invoice-form";
 
 export const metadata: Metadata = { title: "Edit Invoice — Bajen Invoice" };
@@ -12,19 +13,12 @@ export default async function EditInvoicePage({
 }) {
   const { id } = await params;
 
-  const [invoice, customers, products] = await Promise.all([
+  const [invoice, { customers, products }] = await Promise.all([
     prisma.invoice.findUnique({
       where: { id },
       include: { items: true },
     }),
-    prisma.customer.findMany({
-      where: { isActive: true },
-      orderBy: { companyName: "asc" },
-    }),
-    prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-    }),
+    getInvoiceFormOptions(),
   ]);
 
   if (!invoice) notFound();

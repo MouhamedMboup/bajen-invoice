@@ -1,20 +1,11 @@
 import type { Metadata } from "next";
-import { prisma } from "@/lib/prisma";
+import { getInvoiceFormOptions } from "@/lib/invoice-form-options";
 import { NewInvoiceForm } from "@/components/invoices/new-invoice-form";
 
 export const metadata: Metadata = { title: "New Invoice — Bajen Invoice" };
 
 export default async function NewInvoicePage() {
-  const [customers, products] = await Promise.all([
-    prisma.customer.findMany({
-      where: { isActive: true },
-      orderBy: { companyName: "asc" },
-    }),
-    prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  const { customers, products } = await getInvoiceFormOptions();
 
   return (
     <div className="space-y-6">
