@@ -26,6 +26,7 @@ Spec: `docs/superpowers/specs/2026-11-13-invoice-list-and-customer-profile-desig
 
 ### Open items
 - **Client is testing the live app with throwaway invoices.** Before she presents it to Aisha, run `npx tsx scripts/reset-invoices.ts --confirm` again so Aisha's first invoice is `INV-0001`, and delete any test customers/products by hand in the app. (Chosen over building a Draft/finalize feature — the `DRAFT` status exists but drafts still consume a number.)
+  - **Running the reset from a fresh clone:** copy `.env.local` from an existing machine (not in git — the script reads `DATABASE_URL` from it, which points at the production DB), then `npm install` → `npx prisma generate` → `npx tsx scripts/reset-invoices.ts` (dry run; should print current counts) → `npx tsx scripts/reset-invoices.ts --confirm`. `tsx` isn't a dependency, so `npx` downloads it on first run. `DIRECT_URL`/the IPv6 note below only matters for migrations, not the reset.
 - **Profile / change-password page — dropped** (2026-11-13). Password changes still go through an admin-generated reset link on the Team page. `/settings` remains an admin-only placeholder.
 
 > **Local DB note (Linux machine):** the Supabase direct host is IPv6-only. On a machine without IPv6, set `DIRECT_URL` in `.env.local` to the session pooler (same host as `DATABASE_URL`, port **5432**) — otherwise local dev fails with `ENETUNREACH`.
