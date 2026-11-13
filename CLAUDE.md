@@ -123,6 +123,15 @@ Use `src/components/ui/searchable-select.tsx` instead of the plain `Select` when
 
 It is a pure client component with no external dependencies — no Base UI Combobox, no portals.
 
+### Dates and money
+
+The business is in **New York**; Vercel renders in UTC. Never call `toLocaleDateString` directly — use `src/lib/dates.ts`:
+- `formatDate(d)` — moments in time (`createdAt`, `paidAt`), shown in New York time.
+- `formatCalendarDate(d)` — values from a date picker (`dueDate`, expense `date`). They're stored as midnight UTC, so they're read in UTC; New York time would show the previous day.
+- `businessYear(d)` — New York year (used for the yearly invoice grouping).
+
+Money: `formatMoney(n)` in `src/lib/invoice-math.ts` (`-$50.00`, not `$-50.00`).
+
 ### Server Actions
 
 All mutations go through `"use server"` files in `src/app/actions/`. Every action calls `getAuthUser()` first (re-validates the Supabase session) before touching the database. After mutations, call `revalidatePath()` to invalidate the relevant page cache.

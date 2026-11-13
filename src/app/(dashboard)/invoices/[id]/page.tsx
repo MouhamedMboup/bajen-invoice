@@ -18,6 +18,7 @@ import { InvoiceStatusSelect } from "@/components/invoices/invoice-actions";
 import { DeleteInvoiceButton } from "@/components/invoices/delete-invoice-button";
 import { AddPaymentDialog } from "@/components/invoices/add-payment-dialog";
 import { PAYMENT_METHOD_LABELS } from "@/lib/invoice-math";
+import { formatCalendarDate, formatDate } from "@/lib/dates";
 
 export const metadata: Metadata = { title: "Invoice — Bajen Invoice" };
 
@@ -96,22 +97,14 @@ export default async function InvoiceDetailPage({
         <div>
           <p className="text-muted-foreground">Created</p>
           <p className="font-medium">
-            {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {formatDate(invoice.createdAt)}
           </p>
         </div>
         <div>
           <p className="text-muted-foreground">Due Date</p>
           <p className="font-medium">
             {invoice.dueDate
-              ? new Date(invoice.dueDate).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
+              ? formatCalendarDate(invoice.dueDate)
               : "—"}
           </p>
         </div>
@@ -218,11 +211,7 @@ export default async function InvoiceDetailPage({
                 {invoice.payments.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell>
-                      {new Date(p.paidAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatDate(p.paidAt)}
                     </TableCell>
                     <TableCell>{PAYMENT_METHOD_LABELS[p.method]}</TableCell>
                     <TableCell>{p.notes ?? "—"}</TableCell>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { formatDate } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { InviteUserDialog } from "@/components/team/invite-user-dialog";
@@ -76,11 +77,7 @@ export default async function TeamPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {user.createdAt.toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                    {formatDate(user.createdAt)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end">

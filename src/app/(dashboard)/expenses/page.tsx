@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { formatCalendarDate } from "@/lib/dates";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -69,11 +70,7 @@ export default async function ExpensesPage() {
               {expenses.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell>
-                    {new Date(e.date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
+                    {formatCalendarDate(e.date)}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">{CATEGORY_LABELS[e.category]}</Badge>

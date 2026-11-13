@@ -1,3 +1,4 @@
+import { formatCalendarDate, formatDate } from "@/lib/dates";
 import {
   Document,
   Page,
@@ -157,12 +158,7 @@ function fmt(n: Prisma.Decimal | number | string) {
 }
 
 function fmtDate(d: Date | string | null) {
-  if (!d) return "—";
-  return new Date(d).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return d ? formatDate(d) : "—";
 }
 
 interface Props {
@@ -209,7 +205,7 @@ export function InvoicePDF({ invoice, logoSrc, hideFinancials = false }: Props) 
           </View>
           <View style={s.metaCol}>
             <Text style={s.metaLabel}>Due Date</Text>
-            <Text style={s.metaValue}>{fmtDate(invoice.dueDate)}</Text>
+            <Text style={s.metaValue}>{invoice.dueDate ? formatCalendarDate(invoice.dueDate) : "—"}</Text>
           </View>
           <View style={s.metaCol}>
             <Text style={s.metaLabel}>Status</Text>

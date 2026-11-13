@@ -1,6 +1,8 @@
 // Pure money and grouping helpers shared by the invoice list and customer profile.
 // Accepts Prisma Decimal values (anything with toString) as well as plain numbers.
 
+import { businessYear } from "./dates";
+
 type Numeric = number | { toString(): string };
 
 export type MoneyInvoice = {
@@ -25,11 +27,16 @@ export function outstanding(invs: MoneyInvoice[]): number {
   return cents(invs.reduce((sum, inv) => sum + Math.max(invoiceBalance(inv), 0), 0));
 }
 
-/** Groups by UTC year of createdAt, newest year first, preserving input order within a year. */
+/** "$12.50", or "-$12.50" for negative amounts. */
+export function formatMoney(n: number): string {
+  return `${n < 0 ? "-" : ""}$${Math.abs(n).toFixed(2)}`;
+}
+
+/** Groups by New York year of createdAt, newest year first, preserving input order within a year. */
 export function groupByYear<T extends MoneyInvoice>(invs: T[]): { year: number; invoices: T[] }[] {
   const groups = new Map<number, T[]>();
   for (const inv of invs) {
-    const year = inv.createdAt.getUTCFullYear();
+    const year = businessYear(inv.createdAt);
     const list = groups.get(year);
     if (list) list.push(inv);
     else groups.set(year, [inv]);

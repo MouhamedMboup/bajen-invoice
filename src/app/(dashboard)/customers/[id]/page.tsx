@@ -14,7 +14,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { InvoiceTable, YearHeader } from "@/components/invoices/invoice-table";
+import { formatDate } from "@/lib/dates";
 import {
+  formatMoney,
   groupByYear,
   invoicePaid,
   outstanding,
@@ -43,9 +45,6 @@ export async function generateMetadata({
   const customer = await getCustomer(id);
   return { title: customer ? `${customer.companyName} — Bajen Invoice` : "Customer — Bajen Invoice" };
 }
-
-const formatDate = (d: Date) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 export default async function CustomerProfilePage({
   params,
@@ -78,9 +77,9 @@ export default async function CustomerProfilePage({
 
   const stats: { label: string; value: string; danger?: boolean }[] = [
     { label: "Invoices", value: String(invoices.length) },
-    { label: "Total billed", value: `$${totalBilled.toFixed(2)}` },
-    { label: "Total paid", value: `$${totalPaid.toFixed(2)}` },
-    { label: "Outstanding", value: `$${owed.toFixed(2)}`, danger: owed > 0 },
+    { label: "Total billed", value: formatMoney(totalBilled) },
+    { label: "Total paid", value: formatMoney(totalPaid) },
+    { label: "Outstanding", value: formatMoney(owed), danger: owed > 0 },
   ];
 
   return (
@@ -167,7 +166,7 @@ export default async function CustomerProfilePage({
                     </TableCell>
                     <TableCell>{PAYMENT_METHOD_LABELS[p.method] ?? p.method}</TableCell>
                     <TableCell className="text-right">
-                      ${Number(p.amount.toString()).toFixed(2)}
+                      {formatMoney(Number(p.amount.toString()))}
                     </TableCell>
                     <TableCell className="text-muted-foreground">{p.notes || "—"}</TableCell>
                   </TableRow>

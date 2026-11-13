@@ -32,16 +32,21 @@ async function main() {
       return;
     }
 
-    const [delPayments, delItems, delInvoices] = await prisma.$transaction([
-      prisma.payment.deleteMany(),
-      prisma.invoiceItem.deleteMany(),
-      prisma.invoice.deleteMany(),
-      prisma.invoiceCounter.upsert({
-        where: { id: 1 },
-        create: { id: 1, nextNumber: 1 },
-        update: { nextNumber: 1 },
-      }),
-    ]);
+    // Serializable: if someone creates an invoice while this runs, the transaction
+    // fails instead of leaving a survivor whose number would later be reused.
+    const [delPayments, delItems, delInvoices] = await prisma.$transaction(
+      [
+        prisma.payment.deleteMany(),
+        prisma.invoiceItem.deleteMany(),
+        prisma.invoice.deleteMany(),
+        prisma.invoiceCounter.upsert({
+          where: { id: 1 },
+          create: { id: 1, nextNumber: 1 },
+          update: { nextNumber: 1 },
+        }),
+      ],
+      { isolationLevel: "Serializable" },
+    );
     console.log(
       `Deleted ${delInvoices.count} invoices, ${delItems.count} invoice items, ${delPayments.count} payments.`,
     );

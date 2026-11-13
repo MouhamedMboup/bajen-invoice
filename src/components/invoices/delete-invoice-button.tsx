@@ -64,7 +64,7 @@ export function DeleteInvoiceButton({
           Delete
         </Button>
       )}
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Invoice</DialogTitle>
@@ -74,7 +74,7 @@ export function DeleteInvoiceButton({
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" disabled={pending} onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" disabled={pending} onClick={handleDelete}>

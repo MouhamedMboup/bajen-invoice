@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/table";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { DeleteInvoiceButton } from "@/components/invoices/delete-invoice-button";
-import { invoiceBalance, invoicePaid, type MoneyInvoice } from "@/lib/invoice-math";
+import { formatMoney, invoiceBalance, invoicePaid, type MoneyInvoice } from "@/lib/invoice-math";
+import { formatCalendarDate, formatDate } from "@/lib/dates";
 import type { InvoiceStatus } from "@/generated/prisma/client";
 
 export type TableInvoice = MoneyInvoice & {
@@ -22,15 +23,12 @@ export type TableInvoice = MoneyInvoice & {
   customer?: { companyName: string };
 };
 
-const formatDate = (d: Date) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
 export function YearHeader({ year, amount }: { year: number; amount: number }) {
   return (
     <div className="flex items-baseline justify-between">
       <h3 className="text-lg font-semibold">{year}</h3>
       <span className={amount > 0 ? "text-destructive font-medium" : "text-muted-foreground"}>
-        Outstanding: ${amount.toFixed(2)}
+        Outstanding: {formatMoney(amount)}
       </span>
     </div>
   );
@@ -63,7 +61,7 @@ export function InvoiceTable({
           const paid = invoicePaid(inv);
           const balance = invoiceBalance(inv);
           return (
-            <TableRow key={inv.id} className="cursor-pointer">
+            <TableRow key={inv.id}>
               <TableCell>
                 <Link href={`/invoices/${inv.id}`} className="font-medium hover:underline">
                   {inv.invoiceNumber}
@@ -73,14 +71,14 @@ export function InvoiceTable({
               <TableCell>
                 <InvoiceStatusBadge status={inv.status} />
               </TableCell>
-              <TableCell className="text-right">${Number(inv.total.toString()).toFixed(2)}</TableCell>
-              <TableCell className="text-right">${paid.toFixed(2)}</TableCell>
+              <TableCell className="text-right">{formatMoney(Number(inv.total.toString()))}</TableCell>
+              <TableCell className="text-right">{formatMoney(paid)}</TableCell>
               <TableCell className="text-right">
                 <span className={balance > 0 ? "text-destructive font-medium" : ""}>
-                  ${balance.toFixed(2)}
+                  {formatMoney(balance)}
                 </span>
               </TableCell>
-              <TableCell>{inv.dueDate ? formatDate(inv.dueDate) : "—"}</TableCell>
+              <TableCell>{inv.dueDate ? formatCalendarDate(inv.dueDate) : "—"}</TableCell>
               <TableCell className="text-muted-foreground">{formatDate(inv.createdAt)}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">

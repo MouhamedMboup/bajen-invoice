@@ -39,7 +39,7 @@ export function DeleteCustomerButton({ id, name }: { id: string; name: string })
       >
         <Trash2 className="h-4 w-4" />
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(next) => !pending && setOpen(next)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Customer</DialogTitle>
@@ -48,7 +48,7 @@ export function DeleteCustomerButton({ id, name }: { id: string; name: string })
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" disabled={pending} onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" disabled={pending} onClick={handleDelete}>
