@@ -15,8 +15,8 @@ The auto-pause blocker is fixed. Both halves of the app now live under the clien
 
 No code or env var changes were needed. Local setup on a fresh machine still requires `.env.local` (not in git), `npm install`, and `npx prisma generate`.
 
-### Approved feature work — NOT yet implemented
-A design was brainstormed and approved for four features. No spec file, no code changes, and no DB changes have been made yet. Decisions locked in:
+### Feature work — implemented on branch `feat/invoice-list-customer-profile`
+Spec: `docs/superpowers/specs/2026-11-13-invoice-list-and-customer-profile-design.md` · Plan: `docs/superpowers/plans/2026-11-13-invoice-list-and-customer-profile.md`. All four features are built; the reset script has **not** been run with `--confirm` yet. Original decisions:
 
 1. **Delete button on the Invoices list** — add a trash/delete action next to the edit pencil in the `/invoices` table. Reuse the existing `deleteInvoice` action; use a confirmation **Dialog** (like `delete-customer-button.tsx`), not `confirm()`. When deleting from the list, revalidate in place instead of redirecting.
 2. **Reset invoice numbering to #1** — via a standalone script `scripts/reset-invoices.ts` (run with `npx tsx`, guarded by a `--confirm` flag). In one transaction: delete all `Payment`, `InvoiceItem`, `Invoice` rows, then reset `InvoiceCounter` id=1 to `nextNumber = 1`. Decision: **delete ALL existing invoices** (all current data is test data) → next invoice becomes `INV-0001`. Runs once, after the features are built.
@@ -25,7 +25,9 @@ A design was brainstormed and approved for four features. No spec file, no code 
 
 **Scope guard:** no Prisma schema changes, no new dependencies — everything is derivable from existing data.
 
-**Next step when resuming:** write the spec (`docs/superpowers/specs/`) → implementation plan → build → run reset script → browser-test end-to-end.
+**Next step when resuming:** browser-test the branch → merge → run `npx tsx scripts/reset-invoices.ts --confirm` (with the owner's go-ahead) → create one invoice and confirm it is `INV-0001`.
+
+> **Local DB note (Linux machine):** the Supabase direct host is IPv6-only. On a machine without IPv6, set `DIRECT_URL` in `.env.local` to the session pooler (same host as `DATABASE_URL`, port **5432**) — otherwise local dev fails with `ENETUNREACH`.
 
 ## Commands
 
@@ -39,6 +41,13 @@ npx tsc --noEmit  # type-check without emitting
 npx prisma generate                      # regenerate client after schema changes
 npx prisma migrate dev --name <name>     # create and apply a new migration
 npx prisma studio                        # open Prisma Studio (DB browser)
+
+# Tests (Node built-in runner, no extra deps)
+npx tsx --test src/lib/invoice-math.test.ts
+
+# One-off: wipe ALL invoices/items/payments and reset numbering to INV-0001
+npx tsx scripts/reset-invoices.ts            # dry run (counts only)
+npx tsx scripts/reset-invoices.ts --confirm  # actually delete — production DB!
 ```
 
 > Migrations use `DIRECT_URL` (bypasses pgBouncer). Runtime queries use `DATABASE_URL` (pooled). Both are in `.env.local`.
