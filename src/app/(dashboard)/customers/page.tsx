@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -51,7 +52,11 @@ export default async function CustomersPage() {
             <TableBody>
               {customers.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.companyName}</TableCell>
+                  <TableCell>
+                    <Link href={`/customers/${c.id}`} className="font-medium hover:underline">
+                      {c.companyName}
+                    </Link>
+                  </TableCell>
                   <TableCell>{c.contactName ?? "—"}</TableCell>
                   <TableCell>{c.phone ?? "—"}</TableCell>
                   <TableCell>{c.email ?? "—"}</TableCell>
