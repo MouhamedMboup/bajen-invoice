@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 export default function UpdatePasswordPage() {
@@ -139,9 +139,8 @@ export default function UpdatePasswordPage() {
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   New password
                 </Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   placeholder="Min. 8 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -155,9 +154,8 @@ export default function UpdatePasswordPage() {
                 <Label htmlFor="confirm" className="text-sm font-medium text-gray-700">
                   Confirm password
                 </Label>
-                <Input
+                <PasswordInput
                   id="confirm"
-                  type="password"
                   placeholder="Repeat your password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
