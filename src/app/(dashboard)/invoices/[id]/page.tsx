@@ -16,16 +16,9 @@ import {
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
 import { InvoiceStatusSelect, DeleteInvoiceButton } from "@/components/invoices/invoice-actions";
 import { AddPaymentDialog } from "@/components/invoices/add-payment-dialog";
+import { PAYMENT_METHOD_LABELS } from "@/lib/invoice-math";
 
 export const metadata: Metadata = { title: "Invoice — Bajen Invoice" };
-
-const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  CASH: "Cash",
-  CHECK: "Check",
-  BANK_TRANSFER: "Bank Transfer",
-  CREDIT_CARD: "Credit Card",
-  OTHER: "Other",
-};
 
 export default async function InvoiceDetailPage({
   params,
