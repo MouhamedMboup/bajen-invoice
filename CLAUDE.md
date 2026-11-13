@@ -6,22 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current status (read me first — remove once done)
 
-**Last updated: 2026-11-12.** Picking up on another machine? This is where things stand.
+**Last updated: 2026-11-13.** Picking up on another machine? This is where things stand.
 
-### Blocker
-The Supabase project (`hawjvztlmfmogxmtpxcn`) was **paused** (free-tier auto-pause), which broke login — see Troubleshooting below. **Permanent fix in progress:** the owner has a Supabase **Pro** account; Pro orgs never auto-pause. Plan is to either upgrade the org holding this project to Pro, or transfer the project into the existing Pro org (project ref/URL/keys stay the same either way — no code or Vercel env changes). **First step in all cases: restore/resume the paused project** so it resolves in DNS again. Nothing proceeds until the DB is back up.
+### Hosting — resolved (2026-11-13)
+The auto-pause blocker is fixed. Both halves of the app now live under the client's paid accounts:
+- **Supabase:** project `hawjvztlmfmogxmtpxcn` was transferred into the client's **Pro** org (Pro orgs never auto-pause) and upgraded Nano → **Micro** compute (free with Pro). Project ref/URL/keys unchanged.
+- **Vercel:** project `bajen-invoice` was transferred into the client's **Pro** team (`fatou`). Env vars, deployments, `bajen-invoice.vercel.app` and the GitHub connection (`MouhamedMboup/bajen-invoice`, push to `main` → production) carried over.
+
+No code or env var changes were needed. Local setup on a fresh machine still requires `.env.local` (not in git), `npm install`, and `npx prisma generate`.
 
 ### Approved feature work — NOT yet implemented
 A design was brainstormed and approved for four features. No spec file, no code changes, and no DB changes have been made yet. Decisions locked in:
 
 1. **Delete button on the Invoices list** — add a trash/delete action next to the edit pencil in the `/invoices` table. Reuse the existing `deleteInvoice` action; use a confirmation **Dialog** (like `delete-customer-button.tsx`), not `confirm()`. When deleting from the list, revalidate in place instead of redirecting.
-2. **Reset invoice numbering to #1** — via a standalone script `scripts/reset-invoices.ts` (run with `npx tsx`, guarded by a `--confirm` flag). In one transaction: delete all `Payment`, `InvoiceItem`, `Invoice` rows, then reset `InvoiceCounter` id=1 to `nextNumber = 1`. Decision: **delete ALL existing invoices** (all current data is test data) → next invoice becomes `INV-0001`. Runs once, after Supabase is restored.
+2. **Reset invoice numbering to #1** — via a standalone script `scripts/reset-invoices.ts` (run with `npx tsx`, guarded by a `--confirm` flag). In one transaction: delete all `Payment`, `InvoiceItem`, `Invoice` rows, then reset `InvoiceCounter` id=1 to `nextNumber = 1`. Decision: **delete ALL existing invoices** (all current data is test data) → next invoice becomes `INV-0001`. Runs once, after the features are built.
 3. **Customer profile page** `/customers/[id]` — new Server Component; make the company name in the customers list link to it. Shows contact card, stat tiles (# invoices · total billed · total paid · outstanding balance), their invoices table (rows link to invoice, grouped by year), and a payment-history table across all their invoices.
 4. **Yearly grouping on the Invoices list** — split `/invoices` into year sections (newest first), each header showing that year's total outstanding balance. Year derived from `createdAt`.
 
 **Scope guard:** no Prisma schema changes, no new dependencies — everything is derivable from existing data.
 
-**Next step when resuming:** restore Supabase → confirm health → write the spec (`docs/superpowers/specs/`) → implementation plan → build → run reset script → browser-test end-to-end.
+**Next step when resuming:** write the spec (`docs/superpowers/specs/`) → implementation plan → build → run reset script → browser-test end-to-end.
 
 ## Commands
 
