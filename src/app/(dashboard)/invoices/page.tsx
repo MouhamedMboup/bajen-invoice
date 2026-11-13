@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PlusCircle, Pencil } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
+import { InvoiceTable, YearHeader } from "@/components/invoices/invoice-table";
+import { groupByYear, outstanding } from "@/lib/invoice-math";
 
 export const metadata: Metadata = { title: "Invoices — Bajen Invoice" };
 
@@ -42,80 +35,14 @@ export default async function InvoicesPage() {
           <p className="text-muted-foreground">No invoices yet. Create your first one.</p>
         </div>
       ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Paid</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((inv) => {
-                const paid = inv.payments.reduce((s, p) => s + Number(p.amount), 0);
-                const balance = Number(inv.total) - paid;
-                return (
-                  <TableRow key={inv.id} className="cursor-pointer">
-                    <TableCell>
-                      <Link
-                        href={`/invoices/${inv.id}`}
-                        className="font-medium hover:underline"
-                      >
-                        {inv.invoiceNumber}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{inv.customer.companyName}</TableCell>
-                    <TableCell>
-                      <InvoiceStatusBadge status={inv.status} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${Number(inv.total).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">${paid.toFixed(2)}</TableCell>
-                    <TableCell className="text-right">
-                      <span className={balance > 0 ? "text-destructive font-medium" : ""}>
-                        ${balance.toFixed(2)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {inv.dueDate
-                        ? new Date(inv.dueDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(inv.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        render={<Link href={`/invoices/${inv.id}/edit`} />}
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+        groupByYear(invoices).map((group) => (
+          <section key={group.year} className="space-y-2">
+            <YearHeader year={group.year} amount={outstanding(group.invoices)} />
+            <div className="rounded-lg border">
+              <InvoiceTable showCustomer invoices={group.invoices} />
+            </div>
+          </section>
+        ))
       )}
     </div>
   );
