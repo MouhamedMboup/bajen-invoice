@@ -15,17 +15,18 @@ The auto-pause blocker is fixed. Both halves of the app now live under the clien
 
 No code or env var changes were needed. Local setup on a fresh machine still requires `.env.local` (not in git), `npm install`, and `npx prisma generate`.
 
-### Feature work — implemented on branch `feat/invoice-list-customer-profile`
-Spec: `docs/superpowers/specs/2026-11-13-invoice-list-and-customer-profile-design.md` · Plan: `docs/superpowers/plans/2026-11-13-invoice-list-and-customer-profile.md`. All four features are built; the reset script has **not** been run with `--confirm` yet. Original decisions:
+### Feature work — shipped to production (2026-11-13)
+Spec: `docs/superpowers/specs/2026-11-13-invoice-list-and-customer-profile-design.md` · Plan: `docs/superpowers/plans/2026-11-13-invoice-list-and-customer-profile.md`. Merged into `main` and pushed (live on `bajen-invoice.vercel.app`):
 
-1. **Delete button on the Invoices list** — add a trash/delete action next to the edit pencil in the `/invoices` table. Reuse the existing `deleteInvoice` action; use a confirmation **Dialog** (like `delete-customer-button.tsx`), not `confirm()`. When deleting from the list, revalidate in place instead of redirecting.
-2. **Reset invoice numbering to #1** — via a standalone script `scripts/reset-invoices.ts` (run with `npx tsx`, guarded by a `--confirm` flag). In one transaction: delete all `Payment`, `InvoiceItem`, `Invoice` rows, then reset `InvoiceCounter` id=1 to `nextNumber = 1`. Decision: **delete ALL existing invoices** (all current data is test data) → next invoice becomes `INV-0001`. Runs once, after the features are built.
-3. **Customer profile page** `/customers/[id]` — new Server Component; make the company name in the customers list link to it. Shows contact card, stat tiles (# invoices · total billed · total paid · outstanding balance), their invoices table (rows link to invoice, grouped by year), and a payment-history table across all their invoices.
-4. **Yearly grouping on the Invoices list** — split `/invoices` into year sections (newest first), each header showing that year's total outstanding balance. Year derived from `createdAt`.
+1. **Delete button on the Invoices list** — confirmation Dialog, revalidates in place.
+2. **Yearly grouping on `/invoices`** — newest year first, each header shows that year's outstanding balance (New York year of `createdAt`).
+3. **Customer profile page** `/customers/[id]` — contact card, stat tiles, invoices by year, payment history.
+4. **Reset script** `scripts/reset-invoices.ts` — run once with `--confirm` on 2026-11-13; numbering restarted at `INV-0001`.
+5. Also: show/hide password toggle on login and set-password pages; New York dates; `-$50.00` money format; plain objects (no Prisma Decimals) passed to invoice forms.
 
-**Scope guard:** no Prisma schema changes, no new dependencies — everything is derivable from existing data.
-
-**Next step when resuming:** browser-test the branch → merge → run `npx tsx scripts/reset-invoices.ts --confirm` (with the owner's go-ahead) → create one invoice and confirm it is `INV-0001`.
+### Open items
+- **Client is testing the live app with throwaway invoices.** Before she presents it to Aisha, run `npx tsx scripts/reset-invoices.ts --confirm` again so Aisha's first invoice is `INV-0001`, and delete any test customers/products by hand in the app. (Chosen over building a Draft/finalize feature — the `DRAFT` status exists but drafts still consume a number.)
+- **Profile / change-password page — dropped** (2026-11-13). Password changes still go through an admin-generated reset link on the Team page. `/settings` remains an admin-only placeholder.
 
 > **Local DB note (Linux machine):** the Supabase direct host is IPv6-only. On a machine without IPv6, set `DIRECT_URL` in `.env.local` to the session pooler (same host as `DATABASE_URL`, port **5432**) — otherwise local dev fails with `ENETUNREACH`.
 
