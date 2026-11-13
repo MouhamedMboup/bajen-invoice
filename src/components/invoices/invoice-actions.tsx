@@ -2,8 +2,6 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -11,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateInvoiceStatus, deleteInvoice } from "@/app/actions/invoices";
+import { updateInvoiceStatus } from "@/app/actions/invoices";
 import type { InvoiceStatus } from "@/types";
 
 const STATUSES: { value: InvoiceStatus; label: string }[] = [
@@ -55,35 +53,5 @@ export function InvoiceStatusSelect({
         ))}
       </SelectContent>
     </Select>
-  );
-}
-
-export function DeleteInvoiceButton({ invoiceId }: { invoiceId: string }) {
-  const [pending, startTransition] = useTransition();
-
-  function handleDelete() {
-    if (!confirm("Delete this invoice? This cannot be undone.")) return;
-    startTransition(async () => {
-      try {
-        await deleteInvoice(invoiceId);
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "";
-        if (!msg.includes("NEXT_REDIRECT")) {
-          toast.error("Failed to delete invoice");
-        }
-      }
-    });
-  }
-
-  return (
-    <Button
-      variant="outline"
-      className="text-destructive hover:text-destructive"
-      disabled={pending}
-      onClick={handleDelete}
-    >
-      <Trash2 className="mr-2 h-4 w-4" />
-      {pending ? "Deleting…" : "Delete"}
-    </Button>
   );
 }

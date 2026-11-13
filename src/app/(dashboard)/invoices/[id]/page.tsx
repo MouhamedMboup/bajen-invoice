@@ -14,7 +14,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { InvoiceStatusBadge } from "@/components/invoices/invoice-status-badge";
-import { InvoiceStatusSelect, DeleteInvoiceButton } from "@/components/invoices/invoice-actions";
+import { InvoiceStatusSelect } from "@/components/invoices/invoice-actions";
+import { DeleteInvoiceButton } from "@/components/invoices/delete-invoice-button";
 import { AddPaymentDialog } from "@/components/invoices/add-payment-dialog";
 import { PAYMENT_METHOD_LABELS } from "@/lib/invoice-math";
 
@@ -81,7 +82,12 @@ export default async function InvoiceDetailPage({
           </Button>
           <InvoiceStatusSelect invoiceId={invoice.id} status={invoice.status} />
           {!isPaid && <AddPaymentDialog invoiceId={invoice.id} balance={balance} />}
-          <DeleteInvoiceButton invoiceId={invoice.id} />
+          <DeleteInvoiceButton
+            invoiceId={invoice.id}
+            invoiceNumber={invoice.invoiceNumber}
+            redirectTo="/invoices"
+            variant="button"
+          />
         </div>
       </div>
 

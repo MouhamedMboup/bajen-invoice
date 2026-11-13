@@ -182,7 +182,14 @@ export async function addPayment(invoiceId: string, formData: FormData) {
 
 export async function deleteInvoice(id: string) {
   await getAuthUser();
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    select: { customerId: true },
+  });
+  if (!invoice) throw new Error("Invoice not found");
   await prisma.invoice.delete({ where: { id } });
   revalidatePath("/invoices");
-  redirect("/invoices");
+  revalidatePath("/dashboard");
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${invoice.customerId}`);
 }
